@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maligai Shop</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f3f4f6;
+  color:#222;
+}
+header{
+  background:#2563eb;
+  color:white;
+  padding:18px;
+  text-align:center;
+}
+header h1{margin:0;font-size:24px}
+.container{
+  max-width:600px;
+  margin:auto;
+  padding:15px;
+}
+.card{
+  background:white;
+  padding:15px;
+  margin-bottom:15px;
+  border-radius:12px;
+  box-shadow:0 2px 8px #ddd;
+}
+input,button{
+  width:100%;
+  padding:12px;
+  margin-top:8px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:16px;
+}
+button{
+  background:#2563eb;
+  color:white;
+  border:0;
+  font-weight:bold;
+}
+button.sale{background:#16a34a}
+button.delete{background:#dc2626}
+.product{
+  border-bottom:1px solid #ddd;
+  padding:12px 0;
+}
+.product:last-child{border-bottom:0}
+.row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.price{
+  font-weight:bold;
+  color:#16a34a;
+}
+.stock{
+  color:#555;
+  font-size:14px;
+}
+.total{
+  font-size:22px;
+  font-weight:bold;
+  color:#2563eb;
+}
+.small{
+  font-size:13px;
+  color:#666;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>🛒 Maligai Shop</h1>
+  <div>மளிகை கடை கணக்கு</div>
+</header>
+
+<div class="container">
+
+<div class="card">
+<h2>➕ பொருள் சேர்க்க</h2>
+
+<input id="pname" placeholder="பொருள் பெயர்">
+<div class="row">
+<input id="pprice" type="number" placeholder="விலை ₹">
+<input id="pstock" type="number" placeholder="Stock">
+</div>
+
+<button onclick="addProduct()">பொருள் சேர்க்க</button>
+</div>
+
+<div class="card">
+<h2>🔍 பொருட்கள்</h2>
+<input id="search" placeholder="பொருளை Search செய்ய..." oninput="showProducts()">
+<div id="products"></div>
+</div>
+
+<div class="card">
+<h2>🧾 விற்பனை</h2>
+
+<input id="saleName" placeholder="பொருள் பெயர்">
+<div class="row">
+<input id="saleQty" type="number" placeholder="Quantity">
+<input id="salePrice" type="number" placeholder="விலை ₹">
+</div>
+
+<button class="sale" onclick="addSale()">விற்பனை பதிவு</button>
+</div>
+
+<div class="card">
+<h2>📊 இன்றைய விற்பனை</h2>
+<div class="total">₹ <span id="todayTotal">0</span></div>
+<div id="sales"></div>
+</div>
+
+</div>
+
+<script>
+
+let products = JSON.parse(localStorage.getItem("products") || "[]");
+let sales = JSON.parse(localStorage.getItem("sales") || "[]");
+
+function save(){
+  localStorage.setItem("products",JSON.stringify(products));
+  localStorage.setItem("sales",JSON.stringify(sales));
+}
+
+function addProduct(){
+
+  let name=document.getElementById("pname").value.trim();
+  let price=Number(document.getElementById("pprice").value);
+  let stock=Number(document.getElementById("pstock").value);
+
+  if(!name || !price){
+    alert("பொருள் பெயர் மற்றும் விலை உள்ளிடுங்கள்");
+    return;
+  }
+
+  products.push({
+    id:Date.now(),
+    name:name,
+    price:price,
+    stock:stock
+  });
+
+  save();
+
+  document.getElementById("pname").value="";
+  document.getElementById("pprice").value="";
+  document.getElementById("pstock").value="";
+
+  showProducts();
+}
+
+function showProducts(){
+
+  let search=document.getElementById("search").value.toLowerCase();
+
+  let list=products.filter(p =>
+    p.name.toLowerCase().includes(search)
+  );
+
+  let html="";
+
+  if(list.length===0){
+    html="<p class='small'>பொருட்கள் எதுவும் இல்லை.</p>";
+  }
+
+  list.forEach(p=>{
+    html+=`
+    <div class="product">
+      <b>${p.name}</b><br>
+      <span class="price">₹${p.price}</span>
