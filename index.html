@@ -16,64 +16,55 @@ body{
 header{
   background:#2563eb;
   color:white;
-  padding:18px;
   text-align:center;
+  padding:20px 10px;
 }
-header h1{margin:0;font-size:24px}
-.container{
-  max-width:600px;
-  margin:auto;
-  padding:15px;
-}
+h1{margin:0;font-size:28px}
+.container{max-width:600px;margin:auto;padding:15px}
 .card{
   background:white;
-  padding:15px;
-  margin-bottom:15px;
-  border-radius:12px;
+  padding:18px;
+  margin-bottom:16px;
+  border-radius:14px;
   box-shadow:0 2px 8px #ddd;
 }
-input,button{
+input{
   width:100%;
-  padding:12px;
-  margin-top:8px;
-  border-radius:8px;
+  padding:14px;
+  margin:6px 0;
   border:1px solid #ccc;
-  font-size:16px;
+  border-radius:9px;
+  font-size:17px;
 }
-button{
-  background:#2563eb;
-  color:white;
-  border:0;
-  font-weight:bold;
-}
-button.sale{background:#16a34a}
-button.delete{background:#dc2626}
-.product{
-  border-bottom:1px solid #ddd;
-  padding:12px 0;
-}
-.product:last-child{border-bottom:0}
 .row{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:8px;
+  gap:10px;
 }
-.price{
+button{
+  width:100%;
+  padding:14px;
+  margin-top:8px;
+  border:0;
+  border-radius:9px;
+  background:#2563eb;
+  color:white;
+  font-size:17px;
   font-weight:bold;
-  color:#16a34a;
 }
-.stock{
-  color:#555;
-  font-size:14px;
+.product{
+  padding:12px 0;
+  border-bottom:1px solid #ddd;
 }
+.product:last-child{border-bottom:0}
+.price{color:#16a34a;font-weight:bold}
+.stock{color:#555}
+.delete{background:#dc2626}
+.sale{background:#16a34a}
 .total{
-  font-size:22px;
+  font-size:24px;
   font-weight:bold;
   color:#2563eb;
-}
-.small{
-  font-size:13px;
-  color:#666;
 }
 </style>
 </head>
@@ -81,8 +72,8 @@ button.delete{background:#dc2626}
 <body>
 
 <header>
-  <h1>🛒 Maligai Shop</h1>
-  <div>மளிகை கடை கணக்கு</div>
+<h1>🛒 Maligai Shop</h1>
+<div>மளிகை கடை கணக்கு</div>
 </header>
 
 <div class="container">
@@ -90,59 +81,146 @@ button.delete{background:#dc2626}
 <div class="card">
 <h2>➕ பொருள் சேர்க்க</h2>
 
-<input id="pname" placeholder="பொருள் பெயர்">
+<input id="productName" type="text" placeholder="பொருள் பெயர்">
+
 <div class="row">
-<input id="pprice" type="number" placeholder="விலை ₹">
-<input id="pstock" type="number" placeholder="Stock">
+<input id="productPrice" type="number" placeholder="விலை ₹">
+<input id="productStock" type="number" placeholder="Stock">
 </div>
 
-<button onclick="addProduct()">பொருள் சேர்க்க</button>
+<button id="addProductBtn">பொருள் சேர்க்க</button>
 </div>
 
 <div class="card">
 <h2>🔍 பொருட்கள்</h2>
-<input id="search" placeholder="பொருளை Search செய்ய..." oninput="showProducts()">
-<div id="products"></div>
+
+<input id="searchBox" type="text" placeholder="பொருளை Search செய்ய...">
+
+<div id="productList"></div>
 </div>
 
 <div class="card">
 <h2>🧾 விற்பனை</h2>
 
-<input id="saleName" placeholder="பொருள் பெயர்">
+<input id="saleName" type="text" placeholder="பொருள் பெயர்">
+
 <div class="row">
 <input id="saleQty" type="number" placeholder="Quantity">
 <input id="salePrice" type="number" placeholder="விலை ₹">
 </div>
 
-<button class="sale" onclick="addSale()">விற்பனை பதிவு</button>
+<button id="saleBtn" class="sale">விற்பனை பதிவு</button>
 </div>
 
 <div class="card">
 <h2>📊 இன்றைய விற்பனை</h2>
-<div class="total">₹ <span id="todayTotal">0</span></div>
-<div id="sales"></div>
+
+<div class="total">₹ <span id="totalAmount">0</span></div>
+
+<div id="salesList"></div>
 </div>
 
 </div>
 
 <script>
 
-let products = JSON.parse(localStorage.getItem("products") || "[]");
-let sales = JSON.parse(localStorage.getItem("sales") || "[]");
+let products = [];
+let sales = [];
 
-function save(){
-  localStorage.setItem("products",JSON.stringify(products));
-  localStorage.setItem("sales",JSON.stringify(sales));
+try{
+  products = JSON.parse(localStorage.getItem("maligai_products") || "[]");
+  sales = JSON.parse(localStorage.getItem("maligai_sales") || "[]");
+}catch(e){
+  products=[];
+  sales=[];
 }
 
-function addProduct(){
+function saveData(){
+  localStorage.setItem("maligai_products",JSON.stringify(products));
+  localStorage.setItem("maligai_sales",JSON.stringify(sales));
+}
 
-  let name=document.getElementById("pname").value.trim();
-  let price=Number(document.getElementById("pprice").value);
-  let stock=Number(document.getElementById("pstock").value);
+function showProducts(){
 
-  if(!name || !price){
-    alert("பொருள் பெயர் மற்றும் விலை உள்ளிடுங்கள்");
+  const search =
+    document.getElementById("searchBox").value
+    .trim()
+    .toLowerCase();
+
+  const list =
+    products.filter(p =>
+      p.name.toLowerCase().includes(search)
+    );
+
+  const box=document.getElementById("productList");
+
+  if(list.length===0){
+    box.innerHTML="<p>பொருட்கள் எதுவும் இல்லை.</p>";
+    return;
+  }
+
+  box.innerHTML="";
+
+  list.forEach(p=>{
+
+    const div=document.createElement("div");
+    div.className="product";
+
+    div.innerHTML=`
+      <b>${p.name}</b><br>
+      <span class="price">₹${p.price}</span>
+      &nbsp; | &nbsp;
+      <span class="stock">Stock: ${p.stock}</span>
+      <button class="delete" data-id="${p.id}">
+        Delete
+      </button>
+    `;
+
+    box.appendChild(div);
+  });
+
+  document.querySelectorAll(".delete").forEach(btn=>{
+    btn.addEventListener("click",function(){
+
+      const id=Number(this.dataset.id);
+
+      products=products.filter(p=>p.id!==id);
+
+      saveData();
+      showProducts();
+
+    });
+  });
+}
+
+document.getElementById("addProductBtn")
+.addEventListener("click",function(){
+
+  const name=document
+    .getElementById("productName")
+    .value
+    .trim();
+
+  const price=Number(
+    document.getElementById("productPrice").value
+  );
+
+  const stock=Number(
+    document.getElementById("productStock").value
+  );
+
+  if(name===""){
+    alert("பொருள் பெயரை உள்ளிடுங்கள்");
+    return;
+  }
+
+  if(price<=0){
+    alert("விலையை உள்ளிடுங்கள்");
+    return;
+  }
+
+  if(stock<0){
+    alert("Stock சரியாக உள்ளிடுங்கள்");
     return;
   }
 
@@ -153,31 +231,125 @@ function addProduct(){
     stock:stock
   });
 
-  save();
+  saveData();
 
-  document.getElementById("pname").value="";
-  document.getElementById("pprice").value="";
-  document.getElementById("pstock").value="";
+  document.getElementById("productName").value="";
+  document.getElementById("productPrice").value="";
+  document.getElementById("productStock").value="";
 
   showProducts();
-}
 
-function showProducts(){
+  alert("பொருள் வெற்றிகரமாக சேர்க்கப்பட்டது ✅");
+});
 
-  let search=document.getElementById("search").value.toLowerCase();
+document.getElementById("searchBox")
+.addEventListener("input",showProducts);
 
-  let list=products.filter(p =>
-    p.name.toLowerCase().includes(search)
+document.getElementById("saleBtn")
+.addEventListener("click",function(){
+
+  const name=document
+    .getElementById("saleName")
+    .value
+    .trim();
+
+  const qty=Number(
+    document.getElementById("saleQty").value
   );
 
-  let html="";
+  const price=Number(
+    document.getElementById("salePrice").value
+  );
 
-  if(list.length===0){
-    html="<p class='small'>பொருட்கள் எதுவும் இல்லை.</p>";
+  if(name===""){
+    alert("பொருள் பெயரை உள்ளிடுங்கள்");
+    return;
   }
 
-  list.forEach(p=>{
-    html+=`
-    <div class="product">
-      <b>${p.name}</b><br>
-      <span class="price">₹${p.price}</span>
+  if(qty<=0 || price<=0){
+    alert("Quantity மற்றும் விலையை சரியாக உள்ளிடுங்கள்");
+    return;
+  }
+
+  const product=products.find(
+    p=>p.name.toLowerCase()===name.toLowerCase()
+  );
+
+  if(product && product.stock<qty){
+    alert("போதுமான Stock இல்லை");
+    return;
+  }
+
+  if(product){
+    product.stock-=qty;
+  }
+
+  sales.push({
+    name:name,
+    qty:qty,
+    amount:qty*price,
+    date:new Date().toISOString()
+  });
+
+  saveData();
+
+  document.getElementById("saleName").value="";
+  document.getElementById("saleQty").value="";
+  document.getElementById("salePrice").value="";
+
+  showProducts();
+  showSales();
+
+  alert("விற்பனை பதிவு செய்யப்பட்டது ✅");
+});
+
+function showSales(){
+
+  const today=new Date()
+    .toISOString()
+    .slice(0,10);
+
+  const todaySales=sales.filter(
+    s=>s.date.slice(0,10)===today
+  );
+
+  let total=0;
+
+  todaySales.forEach(s=>{
+    total+=s.amount;
+  });
+
+  document.getElementById("totalAmount")
+    .textContent=total;
+
+  const box=document.getElementById("salesList");
+
+  if(todaySales.length===0){
+    box.innerHTML="<p>இன்று விற்பனை இல்லை.</p>";
+    return;
+  }
+
+  box.innerHTML="";
+
+  todaySales.slice().reverse().forEach(s=>{
+
+    const div=document.createElement("div");
+
+    div.className="product";
+
+    div.innerHTML=
+      `<b>${s.name}</b><br>
+       Qty: ${s.qty} |
+       ₹${s.amount}`;
+
+    box.appendChild(div);
+  });
+}
+
+showProducts();
+showSales();
+
+</script>
+
+</body>
+</html>
