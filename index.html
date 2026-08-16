@@ -147,30 +147,34 @@ function showProducts(){
     .trim()
     .toLowerCase();
 
-  const list =
-    products.filter(p =>
-      p.name.toLowerCase().includes(search)
-    );
+  const list = products.filter(p =>
+    p.name.toLowerCase().includes(search)
+  );
 
-  const box=document.getElementById("productList");
+  const box = document.getElementById("productList");
 
-  if(list.length===0){
-    box.innerHTML="<p>பொருட்கள் எதுவும் இல்லை.</p>";
+  if(list.length === 0){
+    box.innerHTML = "<p>பொருட்கள் எதுவும் இல்லை.</p>";
     return;
   }
 
-  box.innerHTML="";
+  box.innerHTML = "";
 
-  list.forEach(p=>{
+  list.forEach(p => {
 
-    const div=document.createElement("div");
-    div.className="product";
+    const div = document.createElement("div");
+    div.className = "product";
 
-    div.innerHTML=`
+    div.innerHTML = `
       <b>${p.name}</b><br>
       <span class="price">₹${p.price}</span>
       &nbsp; | &nbsp;
       <span class="stock">Stock: ${p.stock}</span>
+
+      <button class="edit" data-id="${p.id}">
+        ✏️ Edit
+      </button>
+
       <button class="delete" data-id="${p.id}">
         Delete
       </button>
@@ -179,12 +183,46 @@ function showProducts(){
     box.appendChild(div);
   });
 
-  document.querySelectorAll(".delete").forEach(btn=>{
-    btn.addEventListener("click",function(){
+  document.querySelectorAll(".edit").forEach(btn => {
 
-      const id=Number(this.dataset.id);
+    btn.addEventListener("click", function(){
 
-      products=products.filter(p=>p.id!==id);
+      const id = Number(this.dataset.id);
+      const product = products.find(p => p.id === id);
+
+      if(!product) return;
+
+      const newPrice = prompt(
+        "புதிய விலை ₹",
+        product.price
+      );
+
+      if(newPrice === null) return;
+
+      const newStock = prompt(
+        "புதிய Stock",
+        product.stock
+      );
+
+      if(newStock === null) return;
+
+      product.price = Number(newPrice);
+      product.stock = Number(newStock);
+
+      saveData();
+      showProducts();
+
+      alert("பொருள் விவரம் மாற்றப்பட்டது ✅");
+    });
+  });
+
+  document.querySelectorAll(".delete").forEach(btn => {
+
+    btn.addEventListener("click", function(){
+
+      const id = Number(this.dataset.id);
+
+      products = products.filter(p => p.id !== id);
 
       saveData();
       showProducts();
